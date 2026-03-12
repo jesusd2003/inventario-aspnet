@@ -1,0 +1,7 @@
+﻿@model InventarioApp.Models.Cliente
+@{ ViewData["Title"]="Eliminar Cliente"; }
+<div class="d-flex align-items-center mb-4"><a asp-action="Index" class="btn btn-outline-secondary btn-sm me-3"><i class="bi bi-arrow-left"></i></a><h2 class="fw-bold mb-0 text-danger">Eliminar Cliente</h2></div>
+<div class="row justify-content-center"><div class="col-md-5"><div class="card card-d border-danger"><div class="card-body p-4">
+    @if(Model.Ventas.Any()){<div class="alert alert-danger"><i class="bi bi-exclamation-triangle me-2"></i>Este cliente tiene <strong>@Model.Ventas.Count venta(s)</strong>. No se puede eliminar.</div><a asp-action="Index" class="btn btn-outline-secondary">Volver</a>}
+    else{<div class="alert alert-warning"><i class="bi bi-exclamation-triangle me-2"></i><strong>Esta accion no se puede deshacer.</strong></div><table class="table table-bordered"><tr><th>Nombre</th><td>@Model.Nombre</td></tr><tr><th>Telefono</th><td>@(Model.Telefono??"-")</td></tr></table><form asp-action="Delete" method="post" class="d-flex gap-2">@Html.AntiForgeryToken()<button type="submit" class="btn btn-danger px-4">Si, eliminar</button><a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a></form>}
+</div></div></div></div>

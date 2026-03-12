@@ -1,0 +1,61 @@
+﻿@{
+    ViewData["Title"] = "Reportes";
+    var porDia   = ViewBag.VentasPorDia   as IEnumerable<dynamic> ?? new List<dynamic>();
+    var topProds = ViewBag.TopProductos   as IEnumerable<dynamic> ?? new List<dynamic>();
+    var porTipo  = ViewBag.VentasPorTipo  as IEnumerable<dynamic> ?? new List<dynamic>();
+    var porPago  = ViewBag.VentasPorPago  as IEnumerable<dynamic> ?? new List<dynamic>();
+    decimal totalGeneral = ViewBag.TotalGeneral ?? 0m;
+    decimal totalHoy     = ViewBag.TotalHoy     ?? 0m;
+    int totalVentas      = ViewBag.TotalVentas   ?? 0;
+    int pos = 0;
+}
+<div class="d-flex align-items-center mb-4"><a asp-action="Index" class="btn btn-outline-secondary btn-sm me-3"><i class="bi bi-arrow-left"></i></a><h2 class="fw-bold mb-0"><i class="bi bi-bar-chart me-2"></i>Reportes</h2></div>
+<div class="row mb-4">
+    <div class="col-md-4 mb-3"><div class="card card-d text-center p-4"><div class="text-muted small">Ingresos Totales</div><div class="fw-bold fs-3 text-success">$@totalGeneral.ToString("N2")</div></div></div>
+    <div class="col-md-4 mb-3"><div class="card card-d text-center p-4"><div class="text-muted small">Total Ventas</div><div class="fw-bold fs-3">@totalVentas</div></div></div>
+    <div class="col-md-4 mb-3"><div class="card card-d text-center p-4"><div class="text-muted small">Ventas Hoy</div><div class="fw-bold fs-3 text-primary">$@totalHoy.ToString("N2")</div></div></div>
+</div>
+<div class="row mb-4">
+    <div class="col-md-6 mb-3">
+        <div class="card card-d"><div class="card-body p-4">
+            <h5 class="fw-bold mb-3">Por Tipo de Venta</h5>
+            @foreach(var t in porTipo){<div class="d-flex justify-content-between mb-2"><span class="badge @(t.Tipo=="POS"?"badge-pos":"badge-directa") fs-6">@t.Tipo</span><span><strong>@t.Count</strong> ventas â€” <strong class="text-success">$@(((decimal)t.Total).ToString("N2"))</strong></span></div>}
+        </div></div>
+    </div>
+    <div class="col-md-6 mb-3">
+        <div class="card card-d"><div class="card-body p-4">
+            <h5 class="fw-bold mb-3">Por Tipo de Pago</h5>
+            @foreach(var t in porPago){<div class="d-flex justify-content-between mb-2"><span class="badge @(t.Tipo=="Contado"?"badge-contado":"badge-credito") fs-6">@t.Tipo</span><span><strong>@t.Count</strong> ventas â€” <strong class="text-success">$@(((decimal)t.Total).ToString("N2"))</strong></span></div>}
+        </div></div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-7 mb-4">
+        <div class="card card-d"><div class="card-body p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-calendar3 me-2"></i>Ultimos 7 dias</h5>
+            @if(!porDia.Any()){<p class="text-muted text-center py-3">Sin ventas esta semana.</p>}
+            else{
+                <table class="table table-hover align-middle">
+                    <thead class="table-dark"><tr><th>Fecha</th><th class="text-center">Ventas</th><th class="text-end">Total</th></tr></thead>
+                    <tbody>@foreach(var d in porDia){<tr><td>@((d.Fecha as DateTime?)?.ToString("dd/MM/yyyy")??d.Fecha.ToString())</td><td class="text-center"><span class="badge bg-primary">@d.Count</span></td><td class="text-end fw-bold text-success">$@(((decimal)d.Total).ToString("N2"))</td></tr>}</tbody>
+                </table>
+            }
+        </div></div>
+    </div>
+    <div class="col-md-5 mb-4">
+        <div class="card card-d"><div class="card-body p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-trophy me-2"></i>Top 5 Productos</h5>
+            @if(!topProds.Any()){<p class="text-muted text-center py-3">Sin datos aun.</p>}
+            else{
+                foreach(var p in topProds){
+                    pos++;
+                    var bc = pos==1?"bg-warning text-dark":pos==2?"bg-secondary":"bg-dark";
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex align-items-center gap-2"><span class="badge @bc">#@pos</span><span class="fw-semibold small">@p.Nombre</span></div>
+                        <div class="text-end"><div class="fw-bold text-success small">$@(((decimal)p.Ingresos).ToString("N2"))</div><div class="text-muted" style="font-size:.75rem">@p.Cantidad uds.</div></div>
+                    </div>
+                }
+            }
+        </div></div>
+    </div>
+</div>

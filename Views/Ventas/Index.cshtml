@@ -1,0 +1,36 @@
+﻿@model IEnumerable<InventarioApp.Models.Venta>
+@{ ViewData["Title"]="Historial de Ventas"; }
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div><h2 class="fw-bold mb-0"><i class="bi bi-receipt me-2"></i>Ventas</h2></div>
+    <div class="d-flex gap-2">
+        <a asp-action="Reportes" class="btn btn-outline-dark"><i class="bi bi-bar-chart me-1"></i>Reportes</a>
+        <a asp-action="Create"   class="btn btn-dark"><i class="bi bi-plus-lg me-1"></i>Nueva Venta</a>
+    </div>
+</div>
+<div class="row mb-4">
+    <div class="col-md-4"><div class="card card-d text-center p-3"><div class="text-muted small">Ventas Hoy</div><div class="fw-bold fs-4 text-primary">$@(((decimal)(ViewBag.TotalHoy??0m)).ToString("N2"))</div></div></div>
+    <div class="col-md-4"><div class="card card-d text-center p-3"><div class="text-muted small">Ventas este Mes</div><div class="fw-bold fs-4 text-success">$@(((decimal)(ViewBag.TotalMes??0m)).ToString("N2"))</div></div></div>
+    <div class="col-md-4"><div class="card card-d text-center p-3"><div class="text-muted small">Total General</div><div class="fw-bold fs-4">$@(((decimal)(ViewBag.TotalGeneral??0m)).ToString("N2"))</div></div></div>
+</div>
+<div class="card card-d"><div class="card-body p-0">
+    @if (!Model.Any()) { <div class="text-center py-5"><i class="bi bi-receipt fs-1 text-muted"></i><p class="text-muted mt-2">Sin ventas. <a asp-action="Create">Registra la primera.</a></p></div> }
+    else {
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-dark"><tr><th>#</th><th>Fecha</th><th>Cliente</th><th class="text-center">Tipo</th><th class="text-center">Pago</th><th class="text-center">Items</th><th class="text-end">Total</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var v in Model) {
+                <tr>
+                    <td class="text-muted small">@v.Id</td>
+                    <td>@v.Fecha.ToString("dd/MM/yyyy")<br/><small class="text-muted">@v.Fecha.ToString("HH:mm")</small></td>
+                    <td class="fw-semibold">@(v.Cliente?.Nombre??"-")</td>
+                    <td class="text-center"><span class="badge @(v.TipoVenta==TipoVenta.POS?"badge-pos":"badge-directa")">@v.TipoVenta</span></td>
+                    <td class="text-center"><span class="badge @(v.TipoPago==TipoPago.Contado?"badge-contado":"badge-credito")">@v.TipoPago</span></td>
+                    <td class="text-center"><span class="badge bg-secondary">@v.Detalles.Count</span></td>
+                    <td class="text-end fw-bold text-success">$@v.Total.ToString("N2")</td>
+                    <td><a asp-action="Details" asp-route-id="@v.Id" class="btn btn-sm btn-outline-dark"><i class="bi bi-eye"></i></a></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+</div></div>

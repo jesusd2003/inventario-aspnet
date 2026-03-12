@@ -1,0 +1,45 @@
+﻿@model IEnumerable<InventarioApp.Models.Producto>
+@{ ViewData["Title"]="Productos"; }
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div><h2 class="fw-bold mb-0"><i class="bi bi-archive me-2"></i>Productos</h2></div>
+    <a asp-action="Create" class="btn btn-dark"><i class="bi bi-plus-lg me-1"></i>Nuevo</a>
+</div>
+@if ((int)(ViewBag.StockBajo??0) > 0) {
+    <div class="alert alert-warning d-flex align-items-center mb-3">
+        <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+        <div><strong>Atencion:</strong> @ViewBag.StockBajo producto(s) con stock menor a 5 unidades.</div>
+    </div>
+}
+<div class="card card-d mb-3"><div class="card-body py-3">
+    <form method="get" asp-action="Index" class="d-flex gap-2">
+        <input type="text" name="q" value="@ViewBag.Q" class="form-control" placeholder="Buscar producto..."/>
+        <button type="submit" class="btn btn-dark px-4"><i class="bi bi-search"></i></button>
+        @if (!string.IsNullOrEmpty(ViewBag.Q as string)) { <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i></a> }
+    </form>
+</div></div>
+<div class="card card-d"><div class="card-body p-0">
+    @if (!Model.Any()) {
+        <div class="text-center py-5"><i class="bi bi-inbox fs-1 text-muted"></i><p class="text-muted mt-2">No hay productos. <a asp-action="Create">Crea el primero.</a></p></div>
+    } else {
+        <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-dark"><tr><th>#</th><th>Nombre</th><th>Categoria</th><th class="text-end">Precio</th><th class="text-center">Stock</th><th class="text-center">Acciones</th></tr></thead>
+            <tbody>
+            @foreach (var p in Model) {
+                <tr class="@(p.StockBajo?"table-warning":"")">
+                    <td class="text-muted small">@p.Id</td>
+                    <td class="fw-semibold">@p.Nombre @if(p.StockBajo){<span class="badge bg-danger ms-1">Stock bajo</span>}</td>
+                    <td><span class="badge bg-secondary">@(p.Categoria?.Nombre??"-")</span></td>
+                    <td class="text-end fw-semibold">$@p.Precio.ToString("N2")</td>
+                    <td class="text-center"><span class="badge @(p.StockBajo?"bg-danger":"bg-success") fs-6">@p.Stock</span></td>
+                    <td class="text-center">
+                        <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-sm btn-outline-primary me-1"><i class="bi bi-pencil"></i></a>
+                        <a asp-action="Delete" asp-route-id="@p.Id" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></a>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table></div>
+        <div class="px-3 py-2 border-top text-muted small">@Model.Count() producto(s)</div>
+    }
+</div></div>

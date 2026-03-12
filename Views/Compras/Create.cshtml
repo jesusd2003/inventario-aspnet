@@ -1,0 +1,66 @@
+﻿@model InventarioApp.Models.CompraCreateVM
+@{ ViewData["Title"]="Nueva Compra"; }
+<div class="d-flex align-items-center mb-4"><a asp-action="Index" class="btn btn-outline-secondary btn-sm me-3"><i class="bi bi-arrow-left"></i></a><h2 class="fw-bold mb-0">Nueva Compra</h2></div>
+@if (!ViewData.ModelState.IsValid) { <div class="alert alert-danger">@Html.ValidationSummary(false,"",new{@class="mb-0"})</div> }
+<form asp-action="Create" method="post">@Html.AntiForgeryToken()
+<div class="row">
+    <div class="col-md-4">
+        <div class="card card-d mb-3"><div class="card-body p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-truck me-2"></i>Proveedor</h5>
+            <div class="mb-3"><label asp-for="Proveedor" class="form-label fw-semibold"></label><input asp-for="Proveedor" class="form-control" placeholder="Nombre del proveedor"/></div>
+            <div class="mb-0"><label asp-for="Notas" class="form-label fw-semibold"></label><textarea asp-for="Notas" class="form-control" rows="3" placeholder="Notas adicionales..."></textarea></div>
+        </div></div>
+        <div class="card card-d" style="background:#1e293b;color:white"><div class="card-body p-4">
+            <div class="text-light small mb-1">TOTAL COMPRA</div>
+            <div class="fw-bold" style="font-size:2rem" id="lblTotal">$0.00</div>
+        </div></div>
+    </div>
+    <div class="col-md-8">
+        <div class="card card-d"><div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0"><i class="bi bi-box me-2"></i>Productos a Comprar</h5>
+                <button type="button" class="btn btn-dark btn-sm" onclick="addRow()"><i class="bi bi-plus-lg me-1"></i>Agregar</button>
+            </div>
+            <div class="alert alert-info small"><i class="bi bi-info-circle me-1"></i>Al registrar la compra, el stock de cada producto se sumara automaticamente.</div>
+            <table class="table align-middle mb-0">
+                <thead class="table-dark"><tr><th>Producto</th><th style="width:100px" class="text-center">Cantidad</th><th style="width:130px" class="text-end">Costo Unit.</th><th style="width:120px" class="text-end">Subtotal</th><th style="width:40px"></th></tr></thead>
+                <tbody id="tbody"></tbody>
+                <tfoot><tr><td colspan="3" class="text-end fw-bold">TOTAL:</td><td class="text-end fw-bold fs-5" id="totalTd">$0.00</td><td></td></tr></tfoot>
+            </table>
+            <p id="noItems" class="text-muted small mt-2"><i class="bi bi-info-circle me-1"></i>Haz clic en Agregar para incluir productos.</p>
+        </div></div>
+    </div>
+</div>
+<div class="d-flex gap-2 mt-3"><button type="submit" class="btn btn-dark px-5 py-2 fw-bold"><i class="bi bi-check-lg me-2"></i>Registrar Compra</button><a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a></div>
+</form>
+<script>
+const prods = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+    ((List<InventarioApp.Models.Producto>)ViewBag.Productos).Select(p=>new{p.Id,p.Nombre,p.Stock,costo=Math.Round((double)p.Precio*0.6,2)})
+));
+let idx=0;
+function addRow(){
+    document.getElementById("noItems").style.display="none";
+    const opts=prods.map(p=>`<option value="${p.Id}">${p.Nombre} (Stock actual: ${p.Stock})</option>`).join("");
+    const tr=`<tr id="r${idx}">
+        <td><select name="Items[${idx}].ProductoId" class="form-select form-select-sm" onchange="upd(${idx})" required><option value="0">-- Producto --</option>${opts}</select></td>
+        <td><input type="number" name="Items[${idx}].Cantidad" class="form-control form-control-sm text-center" value="1" min="1" oninput="upd(${idx})" required/></td>
+        <td class="text-end"><span class="pr fw-semibold text-muted">$0.00</span><input type="hidden" class="pv" value="0"/></td>
+        <td class="text-end fw-bold"><span class="st">$0.00</span></td>
+        <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="delRow(${idx})"><i class="bi bi-trash"></i></button></td>
+    </tr>`;
+    document.getElementById("tbody").insertAdjacentHTML("beforeend",tr);
+    idx++;calcTotal();
+}
+function upd(i){
+    const r=document.getElementById("r"+i);if(!r)return;
+    const pid=parseInt(r.querySelector("select").value);
+    const p=prods.find(x=>x.Id===pid);
+    const cant=parseInt(r.querySelector("input[type=number]").value)||0;
+    if(p){r.querySelector(".pr").textContent="$"+p.costo.toFixed(2);r.querySelector(".pv").value=p.costo;}
+    const sub=cant*(parseFloat(r.querySelector(".pv").value)||0);
+    r.querySelector(".st").textContent="$"+sub.toFixed(2);calcTotal();
+}
+function delRow(i){const r=document.getElementById("r"+i);if(r)r.remove();calcTotal();if(!document.querySelectorAll("#tbody tr").length)document.getElementById("noItems").style.display="block";}
+function calcTotal(){let t=0;document.querySelectorAll(".st").forEach(e=>t+=parseFloat(e.textContent.replace("$",""))||0);const f="$"+t.toFixed(2);document.getElementById("totalTd").textContent=f;document.getElementById("lblTotal").textContent=f;}
+window.onload=()=>addRow();
+</script>
