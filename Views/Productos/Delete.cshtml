@@ -1,8 +1,105 @@
-﻿@model InventarioApp.Models.Producto
+@model InventarioApp.Models.Producto
 @{ ViewData["Title"]="Eliminar Producto"; }
-<div class="d-flex align-items-center mb-4"><a asp-action="Index" class="btn btn-outline-secondary btn-sm me-3"><i class="bi bi-arrow-left"></i></a><h2 class="fw-bold mb-0 text-danger"><i class="bi bi-trash me-2"></i>Eliminar Producto</h2></div>
-<div class="row justify-content-center"><div class="col-md-6"><div class="card card-d border-danger"><div class="card-body p-4">
-    <div class="alert alert-danger"><i class="bi bi-exclamation-triangle me-2"></i><strong>Esta accion no se puede deshacer.</strong></div>
-    <table class="table table-bordered"><tr><th class="bg-light">Nombre</th><td>@Model.Nombre</td></tr><tr><th class="bg-light">Categoria</th><td>@(Model.Categoria?.Nombre??"-")</td></tr><tr><th class="bg-light">Precio</th><td>$@Model.Precio.ToString("N2")</td></tr><tr><th class="bg-light">Stock</th><td>@Model.Stock</td></tr></table>
-    <form asp-action="Delete" method="post" class="d-flex gap-2">@Html.AntiForgeryToken()<button type="submit" class="btn btn-danger px-4"><i class="bi bi-trash me-1"></i>Si, eliminar</button><a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a></form>
-</div></div></div></div>
+
+<div class="d-flex align-items-center gap-3 mb-4">
+    <a asp-action="Index" class="btn-back">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <div>
+        <h1 class="page-title mb-0" style="color: var(--danger);">
+            <i class="bi bi-trash"></i>Eliminar Producto
+        </h1>
+        <p class="page-subtitle mb-0">Confirma la eliminacion del producto</p>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card-modern" style="border: 2px solid rgba(239, 68, 68, 0.2);">
+            <div class="card-body p-4 p-lg-5">
+                <div class="alert alert-modern alert-modern-danger mb-4">
+                    <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                    <div>
+                        <strong>Atencion:</strong> Esta accion no se puede deshacer. El producto sera eliminado permanentemente.
+                    </div>
+                </div>
+                
+                <div class="product-preview mb-4">
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <div class="product-icon-lg">
+                            <i class="bi bi-box-seam"></i>
+                        </div>
+                        <div>
+                            <h4 class="mb-1 fw-bold">@Model.Nombre</h4>
+                            <span class="badge badge-modern badge-secondary">@(Model.Categoria?.Nombre??"-")</span>
+                        </div>
+                    </div>
+                    
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Precio</span>
+                            <span class="info-value text-success">$@Model.Precio.ToString("N2")</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Stock</span>
+                            <span class="info-value">@Model.Stock unidades</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr class="my-4"/>
+                
+                <form asp-action="Delete" method="post" class="d-flex gap-3">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger px-4" style="border-radius: 10px; font-weight: 600;">
+                        <i class="bi bi-trash me-2"></i>Si, Eliminar
+                    </button>
+                    <a asp-action="Index" class="btn btn-modern-outline">
+                        Cancelar
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .product-icon-lg {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--danger);
+        font-size: 1.5rem;
+    }
+    
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    
+    .info-item {
+        background: var(--body-bg);
+        padding: 1rem;
+        border-radius: 10px;
+    }
+    
+    .info-label {
+        display: block;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-secondary);
+        margin-bottom: 0.25rem;
+    }
+    
+    .info-value {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--text-primary);
+    }
+</style>

@@ -1,32 +1,449 @@
-﻿@model InventarioApp.Models.LoginViewModel
-@{ ViewData["Title"]="Login"; Layout="_Layout"; }
-<div class="min-vh-100 d-flex align-items-center justify-content-center" style="background:linear-gradient(135deg,#1e293b,#0f172a)">
-    <div class="card card-d" style="width:100%;max-width:420px">
-        <div class="card-body p-5">
-            <div class="text-center mb-4">
-                <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width:64px;height:64px;background:#1e293b">
-                    <i class="bi bi-box-seam text-white fs-3"></i>
+@model InventarioApp.Models.LoginViewModel
+@{ ViewData["Title"]="Iniciar Sesion"; Layout="_Layout"; }
+
+<div class="login-page">
+    <div class="login-container">
+        <!-- Left Side - Branding -->
+        <div class="login-branding">
+            <div class="branding-content">
+                <div class="brand-logo">
+                    <i class="bi bi-box-seam"></i>
                 </div>
-                <h4 class="fw-bold">Inventario Pro</h4>
-                <p class="text-muted small">Inicia sesion para continuar</p>
+                <h1 class="brand-title">Inventario Pro</h1>
+                <p class="brand-tagline">Sistema integral de gestion de inventario, ventas y clientes para tu negocio</p>
+                
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <div class="feature-icon"><i class="bi bi-archive"></i></div>
+                        <div class="feature-text">
+                            <strong>Control de Inventario</strong>
+                            <span>Gestiona productos y categorias</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon"><i class="bi bi-receipt"></i></div>
+                        <div class="feature-text">
+                            <strong>Punto de Venta</strong>
+                            <span>Registra ventas rapidamente</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon"><i class="bi bi-bar-chart-line"></i></div>
+                        <div class="feature-text">
+                            <strong>Reportes Detallados</strong>
+                            <span>Analiza el rendimiento</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-            @if (!ViewData.ModelState.IsValid) { <div class="alert alert-danger small">@Html.ValidationSummary(false,"",new{@class="mb-0"})</div> }
-            <form asp-action="Index" method="post">
-                @Html.AntiForgeryToken()
-                <div class="mb-3">
-                    <label asp-for="Correo" class="form-label fw-semibold"></label>
-                    <div class="input-group"><span class="input-group-text"><i class="bi bi-envelope"></i></span><input asp-for="Correo" class="form-control" placeholder="admin@inventario.com"/></div>
-                    <span asp-validation-for="Correo" class="text-danger small"></span>
+            <div class="branding-decoration">
+                <div class="deco-circle deco-circle-1"></div>
+                <div class="deco-circle deco-circle-2"></div>
+                <div class="deco-circle deco-circle-3"></div>
+            </div>
+        </div>
+        
+        <!-- Right Side - Login Form -->
+        <div class="login-form-section">
+            <div class="login-form-wrapper">
+                <div class="form-header">
+                    <h2 class="form-title">Bienvenido de nuevo</h2>
+                    <p class="form-subtitle">Ingresa tus credenciales para acceder al sistema</p>
                 </div>
-                <div class="mb-4">
-                    <label asp-for="Password" class="form-label fw-semibold"></label>
-                    <div class="input-group"><span class="input-group-text"><i class="bi bi-lock"></i></span><input asp-for="Password" class="form-control" placeholder="Contrasena"/></div>
-                    <span asp-validation-for="Password" class="text-danger small"></span>
+                
+                @if (!ViewData.ModelState.IsValid) {
+                    <div class="alert alert-modern alert-modern-danger mb-4">
+                        <i class="bi bi-exclamation-circle-fill"></i>
+                        <span>@Html.ValidationSummary(false,"",new{@class="mb-0"})</span>
+                    </div>
+                }
+                
+                <form asp-action="Index" method="post" class="login-form">
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="form-group">
+                        <label asp-for="Correo" class="form-label-modern">
+                            <i class="bi bi-envelope me-2"></i>Correo electronico
+                        </label>
+                        <div class="input-group-modern">
+                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                            <input asp-for="Correo" class="form-control" placeholder="usuario@ejemplo.com" autofocus/>
+                        </div>
+                        <span asp-validation-for="Correo" class="validation-error"></span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label asp-for="Password" class="form-label-modern">
+                            <i class="bi bi-lock me-2"></i>Contrasena
+                        </label>
+                        <div class="input-group-modern">
+                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                            <input asp-for="Password" class="form-control" placeholder="Tu contrasena"/>
+                        </div>
+                        <span asp-validation-for="Password" class="validation-error"></span>
+                    </div>
+                    
+                    <button type="submit" class="btn-login">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>
+                        Iniciar Sesion
+                    </button>
+                </form>
+                
+                <div class="demo-credentials">
+                    <div class="demo-badge">
+                        <i class="bi bi-info-circle me-1"></i>Credenciales de prueba
+                    </div>
+                    <div class="demo-info">
+                        <div class="demo-row">
+                            <span class="demo-label">Usuario:</span>
+                            <code>admin@inventario.com</code>
+                        </div>
+                        <div class="demo-row">
+                            <span class="demo-label">Clave:</span>
+                            <code>admin123</code>
+                        </div>
+                    </div>
                 </div>
-                <button type="submit" class="btn w-100 py-2 fw-semibold text-white" style="background:#1e293b"><i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesion</button>
-            </form>
-            <hr class="my-4"/>
-            <p class="text-center text-muted small mb-0">Demo: <strong>admin@inventario.com</strong> / <strong>admin123</strong></p>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+    .login-page {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+        padding: 1rem;
+    }
+    
+    .login-container {
+        display: flex;
+        width: 100%;
+        max-width: 1100px;
+        min-height: 650px;
+        background: #fff;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 25px 80px rgba(0,0,0,0.4);
+    }
+    
+    /* Branding Section */
+    .login-branding {
+        flex: 1;
+        background: linear-gradient(135deg, #4f46e5 0%, #4338ca 50%, #3730a3 100%);
+        padding: 3rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .branding-content {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .brand-logo {
+        width: 80px;
+        height: 80px;
+        background: rgba(255,255,255,0.15);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        color: #fff;
+        margin-bottom: 2rem;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .brand-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 0.75rem;
+        letter-spacing: -1px;
+    }
+    
+    .brand-tagline {
+        font-size: 1.1rem;
+        color: rgba(255,255,255,0.8);
+        line-height: 1.6;
+        margin-bottom: 3rem;
+        max-width: 340px;
+    }
+    
+    .feature-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+    
+    .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.25rem;
+        background: rgba(255,255,255,0.1);
+        border-radius: 14px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .feature-item:hover {
+        background: rgba(255,255,255,0.15);
+        transform: translateX(5px);
+    }
+    
+    .feature-icon {
+        width: 44px;
+        height: 44px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        color: #fff;
+        flex-shrink: 0;
+    }
+    
+    .feature-text {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .feature-text strong {
+        color: #fff;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+    
+    .feature-text span {
+        color: rgba(255,255,255,0.7);
+        font-size: 0.85rem;
+    }
+    
+    /* Decoration */
+    .branding-decoration {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+    }
+    
+    .deco-circle {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.05);
+    }
+    
+    .deco-circle-1 {
+        width: 300px;
+        height: 300px;
+        top: -100px;
+        right: -100px;
+    }
+    
+    .deco-circle-2 {
+        width: 200px;
+        height: 200px;
+        bottom: -50px;
+        left: -50px;
+    }
+    
+    .deco-circle-3 {
+        width: 100px;
+        height: 100px;
+        top: 50%;
+        right: 20%;
+    }
+    
+    /* Form Section */
+    .login-form-section {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem;
+        background: #fff;
+    }
+    
+    .login-form-wrapper {
+        width: 100%;
+        max-width: 380px;
+    }
+    
+    .form-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+    
+    .form-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-subtitle {
+        color: #64748b;
+        font-size: 0.95rem;
+    }
+    
+    .login-form .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .login-form .form-label-modern {
+        display: block;
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: #0f172a;
+        margin-bottom: 0.5rem;
+    }
+    
+    .login-form .input-group-modern {
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.2s ease;
+        display: flex;
+    }
+    
+    .login-form .input-group-modern:focus-within {
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+    }
+    
+    .login-form .input-group-text {
+        background: #f8fafc;
+        border: none;
+        color: #64748b;
+        padding: 0.875rem 1rem;
+    }
+    
+    .login-form .form-control {
+        border: none;
+        padding: 0.875rem 1rem;
+        font-size: 1rem;
+    }
+    
+    .login-form .form-control:focus {
+        box-shadow: none;
+        outline: none;
+    }
+    
+    .validation-error {
+        display: block;
+        color: #ef4444;
+        font-size: 0.8rem;
+        margin-top: 0.5rem;
+    }
+    
+    .btn-login {
+        width: 100%;
+        padding: 1rem 1.5rem;
+        background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+        border: none;
+        border-radius: 12px;
+        color: #fff;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 16px rgba(79, 70, 229, 0.3);
+        margin-top: 0.5rem;
+    }
+    
+    .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(79, 70, 229, 0.4);
+    }
+    
+    .btn-login:active {
+        transform: translateY(0);
+    }
+    
+    /* Demo Credentials */
+    .demo-credentials {
+        margin-top: 2.5rem;
+        padding: 1.25rem;
+        background: #f8fafc;
+        border-radius: 14px;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .demo-badge {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.75rem;
+    }
+    
+    .demo-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .demo-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .demo-label {
+        color: #64748b;
+        font-size: 0.875rem;
+        min-width: 60px;
+    }
+    
+    .demo-info code {
+        background: #0f172a;
+        color: #10b981;
+        padding: 0.25rem 0.625rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-family: 'SF Mono', Monaco, monospace;
+    }
+    
+    /* Responsive */
+    @@media (max-width: 991px) {
+        .login-container {
+            flex-direction: column;
+            max-width: 500px;
+            min-height: auto;
+        }
+        
+        .login-branding {
+            padding: 2rem;
+        }
+        
+        .brand-logo {
+            width: 60px;
+            height: 60px;
+            font-size: 1.75rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .brand-title {
+            font-size: 2rem;
+        }
+        
+        .feature-list {
+            display: none;
+        }
+        
+        .login-form-section {
+            padding: 2rem;
+        }
+    }
+</style>
