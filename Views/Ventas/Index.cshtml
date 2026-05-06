@@ -1,36 +1,192 @@
-﻿@model IEnumerable<InventarioApp.Models.Venta>
+@model IEnumerable<InventarioApp.Models.Venta>
 @{ ViewData["Title"]="Historial de Ventas"; }
+
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <div><h2 class="fw-bold mb-0"><i class="bi bi-receipt me-2"></i>Ventas</h2></div>
+    <div>
+        <h2 class="fw-bold mb-0"><i class="bi bi-receipt text-primary me-2"></i>Ventas</h2>
+        <p class="text-muted mb-0 small">Control de ingresos y ventas a clientes</p>
+    </div>
     <div class="d-flex gap-2">
-        <a asp-action="Reportes" class="btn btn-outline-dark"><i class="bi bi-bar-chart me-1"></i>Reportes</a>
-        <a asp-action="Create"   class="btn btn-dark"><i class="bi bi-plus-lg me-1"></i>Nueva Venta</a>
+        <a asp-action="Reportes" class="btn btn-outline-dark shadow-sm bg-white"><i class="bi bi-bar-chart-fill text-primary me-1"></i>Reportes</a>
+        <a asp-action="Create" class="btn btn-primary shadow-sm"><i class="bi bi-plus-lg me-1"></i>Nueva Venta</a>
     </div>
 </div>
-<div class="row mb-4">
-    <div class="col-md-4"><div class="card card-d text-center p-3"><div class="text-muted small">Ventas Hoy</div><div class="fw-bold fs-4 text-primary">$@(((decimal)(ViewBag.TotalHoy??0m)).ToString("N2"))</div></div></div>
-    <div class="col-md-4"><div class="card card-d text-center p-3"><div class="text-muted small">Ventas este Mes</div><div class="fw-bold fs-4 text-success">$@(((decimal)(ViewBag.TotalMes??0m)).ToString("N2"))</div></div></div>
-    <div class="col-md-4"><div class="card card-d text-center p-3"><div class="text-muted small">Total General</div><div class="fw-bold fs-4">$@(((decimal)(ViewBag.TotalGeneral??0m)).ToString("N2"))</div></div></div>
+
+<div class="card card-d mb-4 border-0 shadow-sm">
+    <div class="card-body p-3">
+        <form method="get" asp-action="Index" id="filterForm" class="row g-2 align-items-center">
+            <div class="col-md-9">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" name="q" id="searchQ" value="@ViewBag.Q" class="form-control border-start-0 bg-light" placeholder="Buscar por cliente o notas de factura..."/>
+                </div>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-dark w-100"><i class="bi bi-search me-1"></i>Buscar</button>
+                @if (!string.IsNullOrEmpty(ViewBag.Q as string)) {
+                    <a asp-action="Index" class="btn btn-outline-secondary px-3" title="Limpiar"><i class="bi bi-x-lg"></i></a>
+                }
+            </div>
+        </form>
+    </div>
 </div>
-<div class="card card-d"><div class="card-body p-0">
-    @if (!Model.Any()) { <div class="text-center py-5"><i class="bi bi-receipt fs-1 text-muted"></i><p class="text-muted mt-2">Sin ventas. <a asp-action="Create">Registra la primera.</a></p></div> }
-    else {
-        <table class="table table-hover align-middle mb-0">
-            <thead class="table-dark"><tr><th>#</th><th>Fecha</th><th>Cliente</th><th class="text-center">Tipo</th><th class="text-center">Pago</th><th class="text-center">Items</th><th class="text-end">Total</th><th></th></tr></thead>
-            <tbody>
-            @foreach (var v in Model) {
-                <tr>
-                    <td class="text-muted small">@v.Id</td>
-                    <td>@v.Fecha.ToString("dd/MM/yyyy")<br/><small class="text-muted">@v.Fecha.ToString("HH:mm")</small></td>
-                    <td class="fw-semibold">@(v.Cliente?.Nombre??"-")</td>
-                    <td class="text-center"><span class="badge @(v.TipoVenta==TipoVenta.POS?"badge-pos":"badge-directa")">@v.TipoVenta</span></td>
-                    <td class="text-center"><span class="badge @(v.TipoPago==TipoPago.Contado?"badge-contado":"badge-credito")">@v.TipoPago</span></td>
-                    <td class="text-center"><span class="badge bg-secondary">@v.Detalles.Count</span></td>
-                    <td class="text-end fw-bold text-success">$@v.Total.ToString("N2")</td>
-                    <td><a asp-action="Details" asp-route-id="@v.Id" class="btn btn-sm btn-outline-dark"><i class="bi bi-eye"></i></a></td>
-                </tr>
+
+<div id="table-container" class="position-relative">
+    <div id="loading-overlay" class="position-absolute top-0 start-0 w-100 h-100 bg-white bg-opacity-75 d-none justify-content-center align-items-center" style="z-index: 10; border-radius: 14px;">
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div>
+    </div>
+
+    <!-- KPI Widgets -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card card-d text-center p-3 border-0 shadow-sm border-start border-4 border-info">
+                <div class="text-muted small fw-semibold text-uppercase mb-1">Ventas Hoy</div>
+                <div class="fw-bold fs-3 text-info">$@(((decimal)(ViewBag.TotalHoy??0m)).ToString("N2"))</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card card-d text-center p-3 border-0 shadow-sm border-start border-4 border-primary">
+                <div class="text-muted small fw-semibold text-uppercase mb-1">Ventas Este Mes</div>
+                <div class="fw-bold fs-3 text-primary">$@(((decimal)(ViewBag.TotalMes??0m)).ToString("N2"))</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card card-d text-center p-3 border-0 shadow-sm border-start border-4 border-success">
+                <div class="text-muted small fw-semibold text-uppercase mb-1">Total Histórico</div>
+                <div class="fw-bold fs-3 text-success">$@(((decimal)(ViewBag.TotalGeneral??0m)).ToString("N2"))</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-d border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold text-secondary">Historial de Ventas Registradas</h6>
+            <span class="badge bg-light text-dark border">Mostrando @Model.Count() de @ViewBag.TotalItems</span>
+        </div>
+        <div class="card-body p-0">
+            @if (!Model.Any()) {
+                <div class="text-center py-5">
+                    <div class="mb-3"><i class="bi bi-receipt fs-1 text-muted opacity-50"></i></div>
+                    <h5 class="text-muted fw-semibold">No se encontraron ventas</h5>
+                    <p class="text-muted small mb-3">La búsqueda no arrojó resultados.</p>
+                    <a asp-action="Create" class="btn btn-sm btn-outline-primary">Realizar nueva venta</a>
+                </div>
+            } else {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light text-secondary small">
+                            <tr>
+                                <th class="ps-4">Folio</th>
+                                <th>Fecha</th>
+                                <th>Cliente</th>
+                                <th class="text-center">Tipo</th>
+                                <th class="text-center">Pago</th>
+                                <th class="text-center">Artículos</th>
+                                <th class="text-end">Total</th>
+                                <th class="text-center pe-4">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody class="border-top-0">
+                        @foreach (var v in Model) {
+                            <tr>
+                                <td class="ps-4 text-muted small fw-mono">#@v.Id.ToString("D5")</td>
+                                <td>
+                                    <div class="fw-semibold text-dark">@v.Fecha.ToString("dd MMM yyyy")</div>
+                                    <div class="text-muted small"><i class="bi bi-clock me-1"></i>@v.Fecha.ToString("HH:mm")</div>
+                                </td>
+                                <td>
+                                    <span class="fw-semibold">@(v.Cliente?.Nombre ?? "Público General")</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge @(v.TipoVenta==InventarioApp.Models.TipoVenta.POS?"bg-info":"bg-primary") bg-opacity-10 text-dark border px-2 py-1 rounded-pill">
+                                        <i class="bi @(v.TipoVenta==InventarioApp.Models.TipoVenta.POS?"bi-shop":"bi-truck") me-1"></i>@v.TipoVenta
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge @(v.TipoPago==InventarioApp.Models.TipoPago.Contado?"bg-success":"bg-warning") bg-opacity-10 text-dark border px-2 py-1 rounded-pill">
+                                        <i class="bi @(v.TipoPago==InventarioApp.Models.TipoPago.Contado?"bi-cash":"bi-credit-card") me-1"></i>@v.TipoPago
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-secondary rounded-pill">@v.Detalles.Count</span>
+                                </td>
+                                <td class="text-end fw-bold text-success">
+                                    $@v.Total.ToString("N2")
+                                </td>
+                                <td class="text-center pe-4">
+                                    <a asp-action="Details" asp-route-id="@v.Id" target="_blank" class="btn btn-sm btn-light border text-info shadow-sm" title="Ver Ticket"><i class="bi bi-receipt-cutoff"></i> Ver</a>
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+
+                @if (ViewBag.TotalPages > 1) {
+                    <div class="card-footer bg-white border-top py-3 d-flex justify-content-center">
+                        <nav aria-label="Navegación de páginas">
+                            <ul class="pagination pagination-sm mb-0 shadow-sm">
+                                <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                                    <button class="page-link" onclick="goToPage(@(ViewBag.CurrentPage - 1))">Anterior</button>
+                                </li>
+                                @for (int i = 1; i <= ViewBag.TotalPages; i++) {
+                                    <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                        <button class="page-link" onclick="goToPage(@i)">@i</button>
+                                    </li>
+                                }
+                                <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                                    <button class="page-link" onclick="goToPage(@(ViewBag.CurrentPage + 1))">Siguiente</button>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                }
             }
-            </tbody>
-        </table>
-    }
-</div></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        let currentPage = @(ViewBag.CurrentPage ?? 1);
+
+        document.getElementById('filterForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            currentPage = 1;
+            loadData();
+        });
+
+        function goToPage(page) {
+            currentPage = page;
+            loadData();
+        }
+
+        async function loadData() {
+            const q = document.getElementById('searchQ').value;
+            const url = `?q=${encodeURIComponent(q)}&page=${currentPage}`;
+
+            document.getElementById('loading-overlay').classList.remove('d-none');
+            document.getElementById('loading-overlay').classList.add('d-flex');
+
+            try {
+                const response = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                const html = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newContent = doc.querySelector('#table-container').innerHTML;
+                document.getElementById('table-container').innerHTML = newContent;
+                window.history.pushState({}, '', url);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                Swal.fire('Error', 'No se pudo cargar la información.', 'error');
+            } finally {
+                const overlay = document.getElementById('loading-overlay');
+                if(overlay) {
+                    overlay.classList.add('d-none');
+                    overlay.classList.remove('d-flex');
+                }
+            }
+        }
+    </script>
+}

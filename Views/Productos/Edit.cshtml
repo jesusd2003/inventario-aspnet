@@ -1,16 +1,80 @@
-﻿@model InventarioApp.Models.Producto
+@model InventarioApp.Models.Producto
 @{ ViewData["Title"]="Editar Producto"; }
-<div class="d-flex align-items-center mb-4"><a asp-action="Index" class="btn btn-outline-secondary btn-sm me-3"><i class="bi bi-arrow-left"></i></a><h2 class="fw-bold mb-0">Editar: @Model.Nombre</h2></div>
-<div class="row justify-content-center"><div class="col-md-7"><div class="card card-d"><div class="card-body p-4">
-    <form asp-action="Edit" method="post">@Html.AntiForgeryToken()<input type="hidden" asp-for="Id"/>
-        <div class="mb-3"><label asp-for="Nombre" class="form-label fw-semibold"></label><input asp-for="Nombre" class="form-control"/><span asp-validation-for="Nombre" class="text-danger small"></span></div>
-        <div class="mb-3"><label asp-for="Descripcion" class="form-label fw-semibold"></label><textarea asp-for="Descripcion" class="form-control" rows="2"></textarea></div>
-        <div class="row">
-            <div class="col-md-6 mb-3"><label asp-for="Precio" class="form-label fw-semibold"></label><div class="input-group"><span class="input-group-text">$</span><input asp-for="Precio" class="form-control" step="0.01"/></div><span asp-validation-for="Precio" class="text-danger small"></span></div>
-            <div class="col-md-6 mb-3"><label asp-for="Stock" class="form-label fw-semibold"></label><input asp-for="Stock" class="form-control" min="0"/><span asp-validation-for="Stock" class="text-danger small"></span></div>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-0 text-dark"><i class="bi bi-pencil-square text-primary me-2"></i>Editar Producto</h2>
+        <p class="text-muted small mb-0">Actualiza la información y existencias del producto ID #@Model.Id</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary shadow-sm"><i class="bi bi-arrow-left me-1"></i>Regresar al catálogo</a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 border-top border-4 border-primary">
+            <div class="card-body p-4 p-md-5">
+                <form asp-action="Edit" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="Id" />
+                    
+                    <div class="row g-4 mb-4">
+                        <div class="col-12">
+                            <label asp-for="Nombre" class="form-label fw-semibold text-secondary small text-uppercase">Nombre del Producto <span class="text-danger">*</span></label>
+                            <div class="input-group input-group-lg shadow-sm">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-tag text-muted"></i></span>
+                                <input asp-for="Nombre" class="form-control border-start-0"/>
+                            </div>
+                            <span asp-validation-for="Nombre" class="text-danger small fw-semibold mt-1 d-block"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Descripcion" class="form-label fw-semibold text-secondary small text-uppercase">Descripción</label>
+                            <textarea asp-for="Descripcion" class="form-control shadow-sm" rows="3"></textarea>
+                            <span asp-validation-for="Descripcion" class="text-danger small fw-semibold mt-1 d-block"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Precio" class="form-label fw-semibold text-secondary small text-uppercase">Precio de Venta <span class="text-danger">*</span></label>
+                            <div class="input-group shadow-sm">
+                                <span class="input-group-text bg-success bg-opacity-10 text-success border-end-0">$</span>
+                                <input asp-for="Precio" class="form-control border-start-0 fw-bold text-success" step="0.01"/>
+                            </div>
+                            <span asp-validation-for="Precio" class="text-danger small fw-semibold mt-1 d-block"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Stock" class="form-label fw-semibold text-secondary small text-uppercase">Stock Actual <span class="text-danger">*</span></label>
+                            <div class="input-group shadow-sm">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-boxes text-muted"></i></span>
+                                <input asp-for="Stock" class="form-control border-start-0" min="0"/>
+                            </div>
+                            <span asp-validation-for="Stock" class="text-danger small fw-semibold mt-1 d-block"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="CategoriaId" class="form-label fw-semibold text-secondary small text-uppercase">Categoría</label>
+                            <div class="input-group shadow-sm">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-folder-fill text-warning"></i></span>
+                                <select asp-for="CategoriaId" asp-items="ViewBag.CategoriaId" class="form-select border-start-0">
+                                    <option value="">-- Seleccionar Categoría --</option>
+                                </select>
+                            </div>
+                            <span asp-validation-for="CategoriaId" class="text-danger small fw-semibold mt-1 d-block"></span>
+                        </div>
+                    </div>
+
+                    <hr class="text-muted opacity-25 mb-4"/>
+
+                    <div class="d-flex justify-content-end gap-3">
+                        <a asp-action="Index" class="btn btn-light border px-4">Cancelar</a>
+                        <button type="submit" class="btn btn-primary px-5 shadow-sm"><i class="bi bi-save me-1"></i>Actualizar Cambios</button>
+                    </div>
+                </form>
+            </div>
         </div>
-        <div class="mb-4"><label asp-for="CategoriaId" class="form-label fw-semibold"></label><select asp-for="CategoriaId" asp-items="ViewBag.CategoriaId" class="form-select"><option value="">-- Categoria --</option></select><span asp-validation-for="CategoriaId" class="text-danger small"></span></div>
-        <div class="d-flex gap-2"><button type="submit" class="btn btn-dark px-4"><i class="bi bi-check-lg me-1"></i>Guardar</button><a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a></div>
-    </form>
-</div></div></div></div>
-@section Scripts { @{await Html.RenderPartialAsync("_ValidationScriptsPartial");} }
+    </div>
+</div>
+
+@section Scripts { 
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");} 
+}

@@ -1,4 +1,4 @@
-﻿using InventarioApp.Data; using InventarioApp.Models;
+using InventarioApp.Data; using InventarioApp.Models;
 using Microsoft.AspNetCore.Mvc; using Microsoft.AspNetCore.Mvc.Rendering; using Microsoft.EntityFrameworkCore;
 namespace InventarioApp.Controllers {
     public class VentasController : Controller {
@@ -6,14 +6,27 @@ namespace InventarioApp.Controllers {
         public VentasController(AppDbContext db) { _db = db; }
         bool Auth() => HttpContext.Session.GetString("UserName") != null;
 
-        public async Task<IActionResult> Index() {
+        public async Task<IActionResult> Index(string? q, int page = 1) {
             if (!Auth()) return RedirectToAction("Index","Login");
-            var ventas = await _db.Ventas.Include(v=>v.Cliente).Include(v=>v.Detalles)
-                .OrderByDescending(v=>v.Fecha).ToListAsync();
-            ViewBag.TotalHoy    = ventas.Where(v=>v.Fecha.Date==DateTime.Today).Sum(v=>v.Total);
-            ViewBag.TotalMes    = ventas.Where(v=>v.Fecha.Month==DateTime.Today.Month&&v.Fecha.Year==DateTime.Today.Year).Sum(v=>v.Total);
-            ViewBag.TotalGeneral= ventas.Sum(v=>v.Total);
-            return View(ventas);
+            ViewBag.Q = q;
+            var query = _db.Ventas.Include(v=>v.Cliente).Include(v=>v.Detalles).AsQueryable();
+            if (!string.IsNullOrWhiteSpace(q)) query = query.Where(v=>v.Cliente!.Nombre.Contains(q) || (v.Notas != null && v.Notas.Contains(q)));
+            
+            ViewBag.TotalGeneral = await query.SumAsync(v=>(decimal?)v.Total)??0;
+            var hoy = DateTime.Today;
+            ViewBag.TotalHoy = await query.Where(v=>v.Fecha.Date==hoy).SumAsync(v=>(decimal?)v.Total)??0;
+            ViewBag.TotalMes = await query.Where(v=>v.Fecha.Month==hoy.Month && v.Fecha.Year==hoy.Year).SumAsync(v=>(decimal?)v.Total)??0;
+
+            int pageSize = 10;
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.CurrentPage = page;
+            var lista = await query.OrderByDescending(v=>v.Fecha).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            return View(lista);
         }
 
         public async Task<IActionResult> Create() {
@@ -55,7 +68,7 @@ namespace InventarioApp.Controllers {
             venta.Total = total;
             await _db.SaveChangesAsync();
             TempData["Exito"]=$"Venta #{venta.Id} registrada exitosamente por ${total:N2}";
-            return RedirectToAction("Details", new{id=venta.Id});
+            return RedirectToAction("Details", new{id=venta.Id, print=true});
         }
 
         public async Task<IActionResult> Details(int? id) {

@@ -1,13 +1,25 @@
-﻿using InventarioApp.Data; using InventarioApp.Models;
+using InventarioApp.Data; using InventarioApp.Models;
 using Microsoft.AspNetCore.Mvc; using Microsoft.EntityFrameworkCore;
 namespace InventarioApp.Controllers {
     public class CategoriasController : Controller {
         private readonly AppDbContext _db;
         public CategoriasController(AppDbContext db) { _db = db; }
         bool Auth() => HttpContext.Session.GetString("UserName") != null;
-        public async Task<IActionResult> Index() {
+        public async Task<IActionResult> Index(string? q, int page = 1) {
             if (!Auth()) return RedirectToAction("Index","Login");
-            return View(await _db.Categorias.Include(c=>c.Productos).OrderBy(c=>c.Nombre).ToListAsync());
+            ViewBag.Q = q;
+            var query = _db.Categorias.Include(c=>c.Productos).AsQueryable();
+            if (!string.IsNullOrWhiteSpace(q)) query = query.Where(c=>c.Nombre.Contains(q));
+            int pageSize = 10;
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.CurrentPage = page;
+            var lista = await query.OrderBy(c=>c.Nombre).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            return View(lista);
         }
         public IActionResult Create() { if (!Auth()) return RedirectToAction("Index","Login"); return View(); }
         [HttpPost][ValidateAntiForgeryToken]

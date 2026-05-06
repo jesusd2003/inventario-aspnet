@@ -1,12 +1,62 @@
-﻿@model InventarioApp.Models.Cliente
+@model InventarioApp.Models.Cliente
 @{ ViewData["Title"]="Nuevo Cliente"; }
-<div class="d-flex align-items-center mb-4"><a asp-action="Index" class="btn btn-outline-secondary btn-sm me-3"><i class="bi bi-arrow-left"></i></a><h2 class="fw-bold mb-0">Nuevo Cliente</h2></div>
-<div class="row justify-content-center"><div class="col-md-6"><div class="card card-d"><div class="card-body p-4">
-    <form asp-action="Create" method="post">@Html.AntiForgeryToken()
-        <div class="mb-3"><label asp-for="Nombre" class="form-label fw-semibold"></label><input asp-for="Nombre" class="form-control" autofocus/><span asp-validation-for="Nombre" class="text-danger small"></span></div>
-        <div class="mb-3"><label asp-for="Telefono" class="form-label fw-semibold"></label><input asp-for="Telefono" class="form-control" placeholder="Opcional"/></div>
-        <div class="mb-4"><label asp-for="Direccion" class="form-label fw-semibold"></label><textarea asp-for="Direccion" class="form-control" rows="2" placeholder="Opcional"></textarea></div>
-        <div class="d-flex gap-2"><button type="submit" class="btn btn-dark px-4"><i class="bi bi-check-lg me-1"></i>Guardar</button><a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a></div>
-    </form>
-</div></div></div></div>
-@section Scripts { @{await Html.RenderPartialAsync("_ValidationScriptsPartial");} }
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-0 text-dark"><i class="bi bi-person-plus text-primary me-2"></i>Nuevo Cliente</h2>
+        <p class="text-muted small mb-0">Agrega un nuevo cliente a la base de datos de tu negocio</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary shadow-sm"><i class="bi bi-arrow-left me-1"></i>Regresar al directorio</a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4 p-md-5">
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="row g-4 mb-4">
+                        <div class="col-12">
+                            <label asp-for="Nombre" class="form-label fw-semibold text-secondary small text-uppercase">Nombre Completo o Razón Social <span class="text-danger">*</span></label>
+                            <div class="input-group input-group-lg shadow-sm">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-person text-muted"></i></span>
+                                <input asp-for="Nombre" class="form-control border-start-0" placeholder="Ej. Juan Pérez" autofocus/>
+                            </div>
+                            <span asp-validation-for="Nombre" class="text-danger small fw-semibold mt-1 d-block"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Telefono" class="form-label fw-semibold text-secondary small text-uppercase">Teléfono de Contacto</label>
+                            <div class="input-group shadow-sm">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-telephone text-muted"></i></span>
+                                <input asp-for="Telefono" class="form-control border-start-0" placeholder="Ej. 555-0192-332"/>
+                            </div>
+                            <span asp-validation-for="Telefono" class="text-danger small fw-semibold mt-1 d-block"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Direccion" class="form-label fw-semibold text-secondary small text-uppercase">Dirección Física</label>
+                            <div class="input-group shadow-sm">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-geo-alt text-muted"></i></span>
+                                <textarea asp-for="Direccion" class="form-control border-start-0" rows="2" placeholder="Calle, Número, Colonia..."></textarea>
+                            </div>
+                            <span asp-validation-for="Direccion" class="text-danger small fw-semibold mt-1 d-block"></span>
+                        </div>
+                    </div>
+
+                    <hr class="text-muted opacity-25 mb-4"/>
+
+                    <div class="d-flex justify-content-end gap-3">
+                        <a asp-action="Index" class="btn btn-light border px-4">Cancelar</a>
+                        <button type="submit" class="btn btn-primary px-5 shadow-sm"><i class="bi bi-check-lg me-1"></i>Guardar Cliente</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts { 
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");} 
+}

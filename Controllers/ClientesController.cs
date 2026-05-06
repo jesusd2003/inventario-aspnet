@@ -1,4 +1,4 @@
-﻿using InventarioApp.Data; using InventarioApp.Models;
+using InventarioApp.Data; using InventarioApp.Models;
 using Microsoft.AspNetCore.Mvc; using Microsoft.EntityFrameworkCore;
 namespace InventarioApp.Controllers {
     public class ClientesController : Controller {
@@ -7,10 +7,21 @@ namespace InventarioApp.Controllers {
         bool Auth() => HttpContext.Session.GetString("UserName") != null;
 
         // Lista de clientes con total comprado
-        public async Task<IActionResult> Index() {
+        public async Task<IActionResult> Index(string? q, int page = 1) {
             if (!Auth()) return RedirectToAction("Index","Login");
-            var clientes = await _db.Clientes.Include(c=>c.Ventas).OrderBy(c=>c.Nombre).ToListAsync();
-            return View(clientes);
+            ViewBag.Q = q;
+            var query = _db.Clientes.Include(c=>c.Ventas).AsQueryable();
+            if (!string.IsNullOrWhiteSpace(q)) query = query.Where(c=>c.Nombre.Contains(q) || (c.Telefono != null && c.Telefono.Contains(q)) || (c.Direccion != null && c.Direccion.Contains(q)));
+            int pageSize = 10;
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.CurrentPage = page;
+            var lista = await query.OrderBy(c=>c.Nombre).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            return View(lista);
         }
 
         // Detalle de un cliente: sus ventas

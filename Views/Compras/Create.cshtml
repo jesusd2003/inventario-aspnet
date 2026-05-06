@@ -1,66 +1,205 @@
-﻿@model InventarioApp.Models.CompraCreateVM
+@model InventarioApp.Models.CompraCreateVM
 @{ ViewData["Title"]="Nueva Compra"; }
-<div class="d-flex align-items-center mb-4"><a asp-action="Index" class="btn btn-outline-secondary btn-sm me-3"><i class="bi bi-arrow-left"></i></a><h2 class="fw-bold mb-0">Nueva Compra</h2></div>
-@if (!ViewData.ModelState.IsValid) { <div class="alert alert-danger">@Html.ValidationSummary(false,"",new{@class="mb-0"})</div> }
-<form asp-action="Create" method="post">@Html.AntiForgeryToken()
-<div class="row">
-    <div class="col-md-4">
-        <div class="card card-d mb-3"><div class="card-body p-4">
-            <h5 class="fw-bold mb-3"><i class="bi bi-truck me-2"></i>Proveedor</h5>
-            <div class="mb-3"><label asp-for="Proveedor" class="form-label fw-semibold"></label><input asp-for="Proveedor" class="form-control" placeholder="Nombre del proveedor"/></div>
-            <div class="mb-0"><label asp-for="Notas" class="form-label fw-semibold"></label><textarea asp-for="Notas" class="form-control" rows="3" placeholder="Notas adicionales..."></textarea></div>
-        </div></div>
-        <div class="card card-d" style="background:#1e293b;color:white"><div class="card-body p-4">
-            <div class="text-light small mb-1">TOTAL COMPRA</div>
-            <div class="fw-bold" style="font-size:2rem" id="lblTotal">$0.00</div>
-        </div></div>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-0 text-dark"><i class="bi bi-truck text-primary me-2"></i>Registrar Compra</h2>
+        <p class="text-muted small mb-0">Captura la entrada de stock proveniente de proveedores</p>
     </div>
-    <div class="col-md-8">
-        <div class="card card-d"><div class="card-body p-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="fw-bold mb-0"><i class="bi bi-box me-2"></i>Productos a Comprar</h5>
-                <button type="button" class="btn btn-dark btn-sm" onclick="addRow()"><i class="bi bi-plus-lg me-1"></i>Agregar</button>
-            </div>
-            <div class="alert alert-info small"><i class="bi bi-info-circle me-1"></i>Al registrar la compra, el stock de cada producto se sumara automaticamente.</div>
-            <table class="table align-middle mb-0">
-                <thead class="table-dark"><tr><th>Producto</th><th style="width:100px" class="text-center">Cantidad</th><th style="width:130px" class="text-end">Costo Unit.</th><th style="width:120px" class="text-end">Subtotal</th><th style="width:40px"></th></tr></thead>
-                <tbody id="tbody"></tbody>
-                <tfoot><tr><td colspan="3" class="text-end fw-bold">TOTAL:</td><td class="text-end fw-bold fs-5" id="totalTd">$0.00</td><td></td></tr></tfoot>
-            </table>
-            <p id="noItems" class="text-muted small mt-2"><i class="bi bi-info-circle me-1"></i>Haz clic en Agregar para incluir productos.</p>
-        </div></div>
-    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary shadow-sm"><i class="bi bi-arrow-left me-1"></i>Regresar al Historial</a>
 </div>
-<div class="d-flex gap-2 mt-3"><button type="submit" class="btn btn-dark px-5 py-2 fw-bold"><i class="bi bi-check-lg me-2"></i>Registrar Compra</button><a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a></div>
+
+@if (!ViewData.ModelState.IsValid) {
+    <div class="alert alert-danger shadow-sm border-0 d-flex align-items-center">
+        <i class="bi bi-exclamation-octagon-fill fs-4 me-3"></i>
+        <div>
+            <h6 class="mb-1 fw-bold">No se pudo procesar la compra</h6>
+            @Html.ValidationSummary(false,"",new{@class="mb-0 small"})
+        </div>
+    </div>
+}
+
+<form asp-action="Create" method="post" id="fcompra">
+    @Html.AntiForgeryToken()
+    <div class="row g-4">
+        <!-- Panel Izquierdo: Proveedor y Totales -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                    <h6 class="fw-bold text-secondary text-uppercase mb-0"><i class="bi bi-building me-2 text-primary"></i>Datos del Proveedor</h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-3">
+                        <label asp-for="Proveedor" class="form-label fw-semibold small text-muted">Nombre o Razón Social</label>
+                        <div class="input-group shadow-sm">
+                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-shop text-muted"></i></span>
+                            <input asp-for="Proveedor" class="form-control border-start-0" placeholder="Ej. Distribuidora Central SA" required autofocus/>
+                        </div>
+                        <span asp-validation-for="Proveedor" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-0">
+                        <label asp-for="Notas" class="form-label fw-semibold small text-muted">Notas y Detalles de Envío</label>
+                        <textarea asp-for="Notas" class="form-control shadow-sm" rows="3" placeholder="Num. de factura externa, condiciones comerciales..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gran Total -->
+            <div class="card border-0 shadow-lg rounded-4" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white;">
+                <div class="card-body p-4 text-center">
+                    <div class="text-white-50 small fw-bold tracking-wide mb-2 text-uppercase">Costo Total Compra</div>
+                    <div class="fw-bold text-warning" style="font-size: 3rem; line-height: 1" id="lblTotal">$0.00</div>
+                    <hr class="border-secondary opacity-25 my-4">
+                    <button type="submit" class="btn btn-warning btn-lg w-100 fw-bold shadow-sm d-flex justify-content-center align-items-center text-dark">
+                        <i class="bi bi-box-arrow-in-down fs-5 me-2"></i> Ingresar al Inventario
+                    </button>
+                    <a asp-action="Index" class="btn btn-link text-white-50 text-decoration-none mt-2 btn-sm w-100">Cancelar y salir</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel Derecho: Productos a ingresar -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-bottom pt-4 pb-3 d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold text-secondary text-uppercase mb-0"><i class="bi bi-boxes me-2 text-primary"></i>Productos Recibidos</h6>
+                    <button type="button" class="btn btn-dark btn-sm shadow-sm px-3 rounded-pill" onclick="addRow()">
+                        <i class="bi bi-plus-lg me-1"></i>Añadir Línea
+                    </button>
+                </div>
+                
+                <div class="alert alert-info border-0 rounded-0 border-bottom mb-0 d-flex align-items-center py-2 px-4 shadow-none">
+                    <i class="bi bi-info-circle-fill me-2 fs-5 text-info"></i>
+                    <span class="small">El stock de estos productos se <strong>sumará automáticamente</strong> a tu inventario al guardar.</span>
+                </div>
+
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" id="tbl" style="min-width: 600px;">
+                            <thead class="table-light text-secondary small">
+                                <tr>
+                                    <th class="ps-4" style="width:40%">Producto</th>
+                                    <th style="width:15%" class="text-center">Cant. Ingresa</th>
+                                    <th style="width:20%" class="text-end">Costo Unitario</th>
+                                    <th style="width:20%" class="text-end pe-4">Subtotal</th>
+                                    <th style="width:5%"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody" class="border-top-0">
+                                <!-- Filas dinamicas -->
+                            </tbody>
+                            <tfoot class="bg-light">
+                                <tr>
+                                    <td colspan="3" class="text-end fw-bold text-secondary text-uppercase py-3">Total Costo:</td>
+                                    <td class="text-end fw-bold text-dark fs-5 pe-4 py-3" id="totalTd">$0.00</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    
+                    <div id="noItems" class="text-center py-5">
+                        <div class="mb-3"><i class="bi bi-inbox fs-1 text-muted opacity-25"></i></div>
+                        <h6 class="text-muted fw-semibold">No has agregado productos</h6>
+                        <p class="text-muted small">Haz clic en "Añadir Línea" para registrar la mercancía recibida.</p>
+                        <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-4" onclick="addRow()">Comenzar captura</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
 </form>
-<script>
-const prods = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
-    ((List<InventarioApp.Models.Producto>)ViewBag.Productos).Select(p=>new{p.Id,p.Nombre,p.Stock,costo=Math.Round((double)p.Precio*0.6,2)})
-));
-let idx=0;
-function addRow(){
-    document.getElementById("noItems").style.display="none";
-    const opts=prods.map(p=>`<option value="${p.Id}">${p.Nombre} (Stock actual: ${p.Stock})</option>`).join("");
-    const tr=`<tr id="r${idx}">
-        <td><select name="Items[${idx}].ProductoId" class="form-select form-select-sm" onchange="upd(${idx})" required><option value="0">-- Producto --</option>${opts}</select></td>
-        <td><input type="number" name="Items[${idx}].Cantidad" class="form-control form-control-sm text-center" value="1" min="1" oninput="upd(${idx})" required/></td>
-        <td class="text-end"><span class="pr fw-semibold text-muted">$0.00</span><input type="hidden" class="pv" value="0"/></td>
-        <td class="text-end fw-bold"><span class="st">$0.00</span></td>
-        <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="delRow(${idx})"><i class="bi bi-trash"></i></button></td>
-    </tr>`;
-    document.getElementById("tbody").insertAdjacentHTML("beforeend",tr);
-    idx++;calcTotal();
+
+@section Scripts {
+    <script>
+    const prods = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        ((List<InventarioApp.Models.Producto>)ViewBag.Productos).Select(p=>new{
+            p.Id,
+            p.Nombre,
+            p.Stock,
+            costo = Math.Round((double)p.Precio * 0.6, 2)
+        })
+    ));
+    
+    let idx = 0;
+
+    function addRow(){
+        document.getElementById("noItems").style.display = "none";
+        
+        const opts = prods.map(p => `<option value="${p.Id}">${p.Nombre} (Stock actual: ${p.Stock})</option>`).join("");
+        
+        const tr = `<tr id="r${idx}">
+            <td class="ps-4">
+                <select name="Items[${idx}].ProductoId" class="form-select shadow-sm border-info" onchange="upd(${idx})" required>
+                    <option value="">-- Buscar producto --</option>
+                    ${opts}
+                </select>
+            </td>
+            <td>
+                <input type="number" name="Items[${idx}].Cantidad" class="form-control text-center fw-bold text-info shadow-sm" value="1" min="1" oninput="upd(${idx})" required/>
+            </td>
+            <td class="text-end">
+                <span class="pr fw-semibold text-muted">$0.00</span>
+                <input type="hidden" class="pv" value="0"/>
+            </td>
+            <td class="text-end pe-4">
+                <span class="st fw-bold text-dark">$0.00</span>
+            </td>
+            <td>
+                <button type="button" class="btn btn-sm btn-light text-danger border shadow-sm rounded-circle" onclick="delRow(${idx})" title="Quitar">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </td>
+        </tr>`;
+        
+        document.getElementById("tbody").insertAdjacentHTML("beforeend", tr);
+        idx++;
+        calcTotal();
+    }
+
+    function upd(i){
+        const r = document.getElementById("r" + i);
+        if(!r) return;
+        
+        const selectEl = r.querySelector("select");
+        const pid = parseInt(selectEl.value);
+        const p = prods.find(x => x.Id === pid);
+        const inputCant = r.querySelector("input[type=number]");
+        let cant = parseInt(inputCant.value) || 0;
+        
+        if (p) {
+            r.querySelector(".pr").textContent = "$" + p.costo.toFixed(2);
+            r.querySelector(".pv").value = p.costo;
+        } else {
+            r.querySelector(".pr").textContent = "$0.00";
+            r.querySelector(".pv").value = 0;
+        }
+        
+        const sub = cant * (parseFloat(r.querySelector(".pv").value) || 0);
+        r.querySelector(".st").textContent = "$" + sub.toFixed(2);
+        
+        calcTotal();
+    }
+
+    function delRow(i){
+        const r = document.getElementById("r" + i);
+        if(r) r.remove();
+        calcTotal();
+        if(!document.querySelectorAll("#tbody tr").length) {
+            document.getElementById("noItems").style.display = "block";
+        }
+    }
+
+    function calcTotal(){
+        let t = 0;
+        document.querySelectorAll(".st").forEach(e => {
+            t += parseFloat(e.textContent.replace("$","")) || 0;
+        });
+        const f = "$" + t.toFixed(2);
+        document.getElementById("totalTd").textContent = f;
+        document.getElementById("lblTotal").textContent = f;
+    }
+    </script>
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }
-function upd(i){
-    const r=document.getElementById("r"+i);if(!r)return;
-    const pid=parseInt(r.querySelector("select").value);
-    const p=prods.find(x=>x.Id===pid);
-    const cant=parseInt(r.querySelector("input[type=number]").value)||0;
-    if(p){r.querySelector(".pr").textContent="$"+p.costo.toFixed(2);r.querySelector(".pv").value=p.costo;}
-    const sub=cant*(parseFloat(r.querySelector(".pv").value)||0);
-    r.querySelector(".st").textContent="$"+sub.toFixed(2);calcTotal();
-}
-function delRow(i){const r=document.getElementById("r"+i);if(r)r.remove();calcTotal();if(!document.querySelectorAll("#tbody tr").length)document.getElementById("noItems").style.display="block";}
-function calcTotal(){let t=0;document.querySelectorAll(".st").forEach(e=>t+=parseFloat(e.textContent.replace("$",""))||0);const f="$"+t.toFixed(2);document.getElementById("totalTd").textContent=f;document.getElementById("lblTotal").textContent=f;}
-window.onload=()=>addRow();
-</script>

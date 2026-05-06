@@ -1,4 +1,4 @@
-﻿using InventarioApp.Data; using InventarioApp.Models;
+using InventarioApp.Data; using InventarioApp.Models;
 using Microsoft.AspNetCore.Mvc; using Microsoft.EntityFrameworkCore;
 namespace InventarioApp.Controllers {
     public class ComprasController : Controller {
@@ -6,10 +6,21 @@ namespace InventarioApp.Controllers {
         public ComprasController(AppDbContext db) { _db = db; }
         bool Auth() => HttpContext.Session.GetString("UserName") != null;
 
-        public async Task<IActionResult> Index() {
+        public async Task<IActionResult> Index(string? q, int page = 1) {
             if (!Auth()) return RedirectToAction("Index","Login");
-            var compras = await _db.Compras.Include(c=>c.Detalles).OrderByDescending(c=>c.Fecha).ToListAsync();
-            return View(compras);
+            ViewBag.Q = q;
+            var query = _db.Compras.Include(c=>c.Detalles).AsQueryable();
+            if (!string.IsNullOrWhiteSpace(q)) query = query.Where(v=>v.Proveedor.Contains(q) || (v.Notas != null && v.Notas.Contains(q)));
+            int pageSize = 10;
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.CurrentPage = page;
+            var lista = await query.OrderByDescending(c=>c.Fecha).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            return View(lista);
         }
 
         public async Task<IActionResult> Create() {

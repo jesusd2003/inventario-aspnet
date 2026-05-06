@@ -1,17 +1,46 @@
-﻿using InventarioApp.Data; using InventarioApp.Models;
+using InventarioApp.Data; using InventarioApp.Models;
 using Microsoft.AspNetCore.Mvc; using Microsoft.AspNetCore.Mvc.Rendering; using Microsoft.EntityFrameworkCore;
 namespace InventarioApp.Controllers {
     public class ProductosController : Controller {
         private readonly AppDbContext _db;
         public ProductosController(AppDbContext db) { _db = db; }
         bool Auth() => HttpContext.Session.GetString("UserName") != null;
-        public async Task<IActionResult> Index(string? q) {
+        public async Task<IActionResult> Index(string? q, int? categoriaId, int page = 1) {
             if (!Auth()) return RedirectToAction("Index","Login");
             ViewBag.Q = q;
+            ViewBag.CategoriaSeleccionada = categoriaId;
+            
             var query = _db.Productos.Include(p=>p.Categoria).AsQueryable();
-            if (!string.IsNullOrWhiteSpace(q)) query = query.Where(p=>p.Nombre.Contains(q)||(p.Descripcion!=null&&p.Descripcion.Contains(q)));
-            var lista = await query.OrderBy(p=>p.Nombre).ToListAsync();
-            ViewBag.StockBajo = lista.Count(p=>p.Stock<5);
+            
+            if (!string.IsNullOrWhiteSpace(q)) {
+                query = query.Where(p=>p.Nombre.Contains(q)||(p.Descripcion!=null&&p.Descripcion.Contains(q)));
+            }
+            
+            if (categoriaId.HasValue && categoriaId.Value > 0) {
+                query = query.Where(p=>p.CategoriaId == categoriaId.Value);
+            }
+
+            ViewBag.StockBajo = await query.CountAsync(p=>p.Stock<5);
+            
+            int pageSize = 10;
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+
+            ViewBag.TotalProductos = totalItems;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.CurrentPage = page;
+            ViewBag.PageSize = pageSize;
+
+            var lista = await query.OrderBy(p=>p.Nombre)
+                                   .Skip((page - 1) * pageSize)
+                                   .Take(pageSize)
+                                   .ToListAsync();
+            
+            ViewBag.Categorias = new SelectList(await _db.Categorias.OrderBy(c=>c.Nombre).ToListAsync(), "Id", "Nombre", categoriaId);
+
             return View(lista);
         }
         public async Task<IActionResult> Create() { if (!Auth()) return RedirectToAction("Index","Login"); await Cats(); return View(); }

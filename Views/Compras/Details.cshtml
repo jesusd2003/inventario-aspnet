@@ -1,22 +1,107 @@
-﻿@model InventarioApp.Models.Compra
-@{ ViewData["Title"]="Compra #"+Model.Id; }
-<div class="d-flex align-items-center mb-4"><a asp-action="Index" class="btn btn-outline-secondary btn-sm me-3"><i class="bi bi-arrow-left"></i></a><h2 class="fw-bold mb-0">Compra #@Model.Id</h2></div>
-<div class="row">
-    <div class="col-md-4 mb-4"><div class="card card-d h-100"><div class="card-body p-4">
-        <h5 class="fw-bold mb-3">Informacion</h5>
-        <table class="table table-borderless table-sm">
-            <tr><td class="text-muted">Fecha</td><td class="fw-bold">@Model.Fecha.ToString("dd/MM/yyyy HH:mm")</td></tr>
-            <tr><td class="text-muted">Proveedor</td><td class="fw-bold">@(Model.Proveedor??"-")</td></tr>
-            <tr><td class="text-muted">Notas</td><td>@(Model.Notas??"-")</td></tr>
-            <tr><td class="text-muted">Total</td><td class="fw-bold fs-5">$@Model.Total.ToString("N2")</td></tr>
-        </table>
-    </div></div></div>
-    <div class="col-md-8 mb-4"><div class="card card-d"><div class="card-body p-0">
-        <div class="px-4 py-3 border-bottom fw-bold"><i class="bi bi-box me-2"></i>Productos Comprados</div>
-        <table class="table align-middle mb-0">
-            <thead class="table-light"><tr><th>Producto</th><th class="text-center">Cantidad</th><th class="text-end">Costo Unit.</th><th class="text-end">Subtotal</th></tr></thead>
-            <tbody>@foreach(var d in Model.Detalles){<tr><td class="fw-semibold">@(d.Producto?.Nombre??"-")</td><td class="text-center"><span class="badge bg-success rounded-pill">+@d.Cantidad</span></td><td class="text-end">$@d.CostoUnitario.ToString("N2")</td><td class="text-end fw-bold">$@d.Subtotal.ToString("N2")</td></tr>}</tbody>
-            <tfoot><tr class="table-light"><td colspan="3" class="text-end fw-bold">TOTAL</td><td class="text-end fw-bold fs-5">$@Model.Total.ToString("N2")</td></tr></tfoot>
-        </table>
-    </div></div></div>
+@model InventarioApp.Models.Compra
+@{ ViewData["Title"]="Folio de Compra #"+Model.Id; }
+
+<style>
+    @@media print {
+        body * { visibility: hidden; }
+        #print-area, #print-area * { visibility: visible; }
+        #print-area { position: absolute; left: 0; top: 0; width: 100%; }
+        .no-print { display: none !important; }
+        .card { border: none !important; box-shadow: none !important; }
+        .card-header { background-color: transparent !important; border-bottom: 2px solid #dee2e6 !important; }
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4 no-print">
+    <div>
+        <h2 class="fw-bold mb-0 text-dark"><i class="bi bi-truck text-primary me-2"></i>Detalle de Compra</h2>
+        <p class="text-muted small mb-0">Consulta o imprime el comprobante de ingreso de mercancía</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button onclick="window.print()" class="btn btn-dark shadow-sm"><i class="bi bi-printer me-1"></i>Imprimir Recibo</button>
+        <a asp-action="Index" class="btn btn-outline-secondary shadow-sm"><i class="bi bi-arrow-left me-1"></i>Regresar</a>
+    </div>
+</div>
+
+<div class="row justify-content-center" id="print-area">
+    <div class="col-lg-10">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 border-top border-4 border-primary">
+            <!-- Invoice Header -->
+            <div class="card-header bg-white border-bottom p-4 p-md-5">
+                <div class="row align-items-center">
+                    <div class="col-sm-6 text-center text-sm-start mb-3 mb-sm-0">
+                        <h2 class="fw-bold text-dark mb-1 d-flex align-items-center justify-content-center justify-content-sm-start">
+                            <i class="bi bi-box-seam text-primary me-2"></i>Inventario Pro
+                        </h2>
+                        <p class="text-muted small mb-0">Comprobante de Ingreso de Almacén</p>
+                    </div>
+                    <div class="col-sm-6 text-center text-sm-end">
+                        <div class="text-muted text-uppercase small fw-bold mb-1">Folio de Compra</div>
+                        <h3 class="fw-bold text-primary mb-0">NO. C-@Model.Id.ToString("D6")</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Invoice Body -->
+            <div class="card-body p-4 p-md-5">
+                <div class="row g-4 mb-5">
+                    <div class="col-sm-6">
+                        <div class="text-muted text-uppercase small fw-bold mb-2">Proveedor / Distribuidor:</div>
+                        <h5 class="fw-bold text-dark mb-1">@(Model.Proveedor ?? "Proveedor no especificado")</h5>
+                    </div>
+                    <div class="col-sm-6 text-sm-end">
+                        <div class="text-muted text-uppercase small fw-bold mb-2">Detalles de Recepción:</div>
+                        <div class="mb-1"><span class="text-muted me-2">Fecha y Hora de Ingreso:</span> <span class="fw-semibold">@Model.Fecha.ToString("dd MMMM yyyy, HH:mm")</span></div>
+                        <div class="mb-1"><span class="text-muted me-2">Artículos Totales:</span> <span class="fw-semibold">@Model.Detalles.Sum(x=>x.Cantidad) Unidades</span></div>
+                    </div>
+                </div>
+
+                <div class="table-responsive mb-4">
+                    <table class="table table-borderless table-striped align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th class="ps-3 py-3 rounded-start">Producto Ingresado</th>
+                                <th class="text-center py-3">Cantidad</th>
+                                <th class="text-end py-3">Costo Unit.</th>
+                                <th class="text-end pe-3 py-3 rounded-end">Costo Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach(var d in Model.Detalles) {
+                                <tr>
+                                    <td class="ps-3 py-3 fw-semibold text-dark">@(d.Producto?.Nombre ?? "Producto Eliminado")</td>
+                                    <td class="text-center py-3"><span class="badge bg-success bg-opacity-10 text-success border border-success-subtle px-2 py-1">+@d.Cantidad</span></td>
+                                    <td class="text-end py-3 text-muted">$@d.CostoUnitario.ToString("N2")</td>
+                                    <td class="text-end pe-3 py-3 fw-bold text-dark">$@d.Subtotal.ToString("N2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-7 mb-4 mb-md-0">
+                        @if(!string.IsNullOrEmpty(Model.Notas)) {
+                            <div class="bg-light p-3 rounded-3 border">
+                                <h6 class="fw-bold small text-secondary text-uppercase mb-2"><i class="bi bi-stickies me-1"></i>Referencias y Notas</h6>
+                                <p class="small text-muted mb-0">@Model.Notas</p>
+                            </div>
+                        }
+                    </div>
+                    <div class="col-md-5">
+                        <div class="card bg-light border-0 rounded-3">
+                            <div class="card-body p-4 text-end">
+                                <div class="text-muted text-uppercase small fw-bold mb-1">Costo Total de Compra</div>
+                                <h2 class="fw-bold text-dark mb-0">$@Model.Total.ToString("N2")</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-footer bg-white border-top text-center py-4">
+                <span class="text-muted small"><i class="bi bi-check-circle-fill text-success me-1"></i> Los artículos detallados han sido agregados satisfactoriamente a las existencias del inventario.</span>
+            </div>
+        </div>
+    </div>
 </div>
